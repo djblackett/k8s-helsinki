@@ -8,10 +8,9 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY *.go ./
 
-
-RUN CGO_ENABLED=0 GOOS=linux go build -o /todo-go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /random-letters
 
 FROM scratch
 
-COPY --from=builder /todo-go .
-CMD ["/todo-go"]
+COPY --from=builder /random-letters .
+CMD ["/random-letters"]

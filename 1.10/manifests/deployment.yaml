@@ -12,6 +12,17 @@ spec:
       labels:
         app: log-output
     spec:
+      volumes:
+        - name: shared-image
+          emptyDir: {}
       containers:
         - name: log-output
-          image: djblackett/log-output:v0.1
+          image: djblackett/log-printer:v0.4
+          volumeMounts: # Mount volume
+            - name: shared-image
+              mountPath: /files
+        - name: timestamp
+          image: djblackett/timestamp-writer:v0.3
+          volumeMounts: # Mount volume
+            - name: shared-image
+              mountPath: /files

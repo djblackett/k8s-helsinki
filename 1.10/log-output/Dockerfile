@@ -10,7 +10,7 @@ COPY *.go ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /random-letters
 
-FROM scratch
+FROM alpine:latest
 
 COPY --from=builder /random-letters .
 CMD ["/random-letters"]

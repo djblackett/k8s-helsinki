@@ -15,4 +15,5 @@ RUN go-assets-builder templates -o assets.go && \
 FROM scratch
 
 COPY --from=builder /todo-go .
+RUN mkdir tmp/kube
 CMD ["/todo-go"]

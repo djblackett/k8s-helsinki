@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-go
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-go
+  template:
+    metadata:
+      labels:
+        app: todo-go
+    spec:
+      volumes:
+        - name: shared-image
+          persistentVolumeClaim:
+            claimName: image-claim
+      containers:
+        - name: todo-go
+          image: djblackett/todo-go:v12.1
+          volumeMounts:
+            - mountPath: /tmp/kube
+              name: shared-image
+          env:
+            - name: PORT
+              value: "8000"

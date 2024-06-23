@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 0 4px 4px 0;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .image {
+            width: 50%;
+
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>TODO App</h1>
+    <img src="/static/img.jpg"  alt="moo" class="image"/>
+    <form id="todo-form">
+        <input type="text" id="todo-input" placeholder="Enter a new task">
+        <button type="submit">Send</button>
+    </form>
+    <ul id="todo-list">
+        {{ range .Todos }}
+        <li>
+            {{ . }}
+            <button class="delete-btn">Delete</button>
+        </li>
+        {{ end }}
+    </ul>
+</div>
+<script>
+    document.getElementById('todo-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const todoInput = document.getElementById('todo-input');
+        if (todoInput.value.trim()) {
+            const todoList = document.getElementById('todo-list');
+            const newTodo = document.createElement('li');
+            newTodo.innerHTML = `
+                     ${todoInput.value}
+                    <button class="delete-btn">Delete</button>
+                `;
+                todoList.appendChild(newTodo);
+                todoInput.value = '';
+            }
+        });
+
+        document.getElementById('todo-list').addEventListener('click', function(event) {
+            if (event.target.classList.contains('delete-btn')) {
+                event.target.parentElement.remove();
+            }
+        });
+    </script>
+</body>
+</html>

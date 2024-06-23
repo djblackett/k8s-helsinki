@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	filename := "files/timestamp.txt"
+	filename := "tmp/kube/timestamp.txt"
 
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0644)
 	if err != nil {
@@ -25,6 +25,7 @@ func main() {
 			fmt.Println("Error writing to file:", err)
 			return
 		}
+		fmt.Println(timestamp)
 		time.Sleep(5 * time.Second)
 	}
 	defer file.Close()

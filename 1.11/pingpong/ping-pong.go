@@ -17,7 +17,7 @@ func main() {
 
 	filename := "tmp/kube/pingpong.txt"
 
-	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
@@ -54,8 +54,8 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = ":8000"
 	}
 
-	r.Run()
+	r.Run(port)
 }

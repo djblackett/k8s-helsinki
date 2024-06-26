@@ -3,42 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"time"
 )
-
-func main() {
-
-	_, err := readTimestamp()
-	if err != nil {
-		writeTimestamp()
-		getImage()
-	}
-
-	go startTimestampWatcher()
-
-	r := gin.Default()
-
-	r.Static("/todo-react", "./build") // Serve static files from React's build directory
-	r.NoRoute(func(c *gin.Context) {
-		c.File("./build/index.html") // Serve the React app for any undefined routes
-	})
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	fmt.Println("*****************************")
-	fmt.Printf("Server started in port %s\n", port)
-	fmt.Println("*****************************\n")
-
-	r.Run()
-}
 
 func getImage() {
 	resp, err := http.Get("https://picsum.photos/1200")
@@ -61,6 +31,7 @@ func getImage() {
 	}
 
 	fmt.Println("Image updated")
+
 }
 
 func readTimestamp() (string, error) {
@@ -116,6 +87,7 @@ func checkTimestamp() bool {
 		fmt.Println("error parsing timestamp")
 	}
 	return time.Since(t) > time.Hour
+
 }
 
 func startTimestampWatcher() {

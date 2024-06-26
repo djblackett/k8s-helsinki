@@ -10,6 +10,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: todo-go-svc
+                name: todo-go-
+
                 port:
                   number: 2345

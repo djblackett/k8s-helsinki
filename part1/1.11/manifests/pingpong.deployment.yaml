@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ping-pong-log
+  name: ping-pong
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ping-pong-log
+      app: ping-pong
   template:
     metadata:
       labels:
-        app: ping-pong-log
+        app: ping-pong
     spec:
       volumes:
         - name: shared-image
@@ -19,16 +19,6 @@ spec:
       containers:
         - name: ping-pong
           image: djblackett/pingpong:v11.4
-          volumeMounts:
-            - name: shared-image
-              mountPath: /tmp/kube
-        - name: log-output
-          image: djblackett/log-printer:v11.2
-          volumeMounts:
-            - name: shared-image
-              mountPath: /tmp/kube
-        - name: timestamp
-          image: djblackett/timestamp-writer:v11
           volumeMounts:
             - name: shared-image
               mountPath: /tmp/kube

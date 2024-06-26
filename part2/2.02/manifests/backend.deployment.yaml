@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-go-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-go-backend
+  template:
+    metadata:
+      labels:
+        app: todo-go-backend
+    spec:
+      containers:
+        - name: todo-go-backend
+          image: djblackett/todo-go-backend
+          env:
+            - name: PORT
+              value: ":8000"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-go-backend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: todo-go-backend # This is the app as declared in the deployment.
+  ports:
+    - port: 2345
+      protocol: TCP
+      targetPort: 80

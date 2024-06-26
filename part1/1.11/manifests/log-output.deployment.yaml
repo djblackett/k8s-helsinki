@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-output
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-output
+  template:
+    metadata:
+      labels:
+        app: log-output
+    spec:
+      volumes:
+        - name: shared-image
+          persistentVolumeClaim:
+            claimName: image-claim
+      containers:
+        - name: log-server
+          image: djblackett/log-printer:v11.2
+          volumeMounts:
+            - name: shared-image
+              mountPath: /tmp/kube
+        - name: timestamp
+          image: djblackett/timestamp-writer:v11
+          volumeMounts:
+            - name: shared-image
+              mountPath: /tmp/kube

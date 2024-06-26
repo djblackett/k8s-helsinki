@@ -1,0 +1,15 @@
+services:
+  backend-todos:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: site-server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+

@@ -30,14 +30,14 @@ func main() {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = ":8080"
 	}
 
 	fmt.Println("*****************************")
 	fmt.Printf("Server started in port %s\n", port)
 	fmt.Println("*****************************\n")
 
-	r.Run()
+	r.Run(port)
 }
 
 func getImage() {

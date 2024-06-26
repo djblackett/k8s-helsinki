@@ -26,6 +26,7 @@ func main() {
 	r.LoadHTMLGlob("templates/*")
 
 	// Full Disclosure: HTML mostly generated with ChatGPT and I inserted some templating stuff into it.
+	// I made a React app for later versions of this project (100% written by me)
 	r.GET("/", func(c *gin.Context) {
 		todos := []string{"Buy milk", "Walk the dog", "Do laundry"}
 		c.HTML(http.StatusOK, "index.html", gin.H{"Todos": todos})
@@ -44,7 +45,6 @@ func main() {
 }
 
 func getImage() {
-	//for true {
 	resp, err := http.Get("https://picsum.photos/1200")
 	if err != nil {
 		log.Fatalln(err)
@@ -59,17 +59,11 @@ func getImage() {
 		return
 	}
 
-	//file.Truncate(0)
-	//file.Seek(0, 0)
-
-	// Write the timestamp to the file
 	if _, err := io.Copy(file, resp.Body); err != nil {
 		fmt.Println("Error writing to file:", err)
 	}
 
 	fmt.Println("Image updated")
-	//time.Sleep(1 * time.Hour)
-	//}
 }
 
 func readTimestamp() (string, error) {
@@ -81,13 +75,11 @@ func readTimestamp() (string, error) {
 	}
 	defer file.Close()
 
-	// Create a new scanner to read the file line by line
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		timestamp = scanner.Text()
 	}
 
-	// Check for errors during scanning
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error reading file:", err)
 	}
@@ -107,7 +99,7 @@ func writeTimestamp() {
 
 	file.Truncate(0)
 	file.Seek(0, 0)
-	// Write the timestamp to the file
+
 	if _, err := file.WriteString(timestamp + "\n"); err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
@@ -116,7 +108,6 @@ func writeTimestamp() {
 }
 
 func checkTimestamp() bool {
-	//for true {
 	timestamp, err1 := readTimestamp()
 	if err1 != nil {
 		fmt.Println("error reading timestamp")
@@ -126,7 +117,6 @@ func checkTimestamp() bool {
 		fmt.Println("error parsing timestamp")
 	}
 	return time.Since(t) > time.Hour
-	//}
 }
 
 func startTimestampWatcher() {

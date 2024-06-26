@@ -6,11 +6,10 @@ spec:
   rules:
     - http:
         paths:
-          - path: /
+          - path: /todo-react
             pathType: Prefix
             backend:
               service:
-                name: todo-go-
-
+                name: todo-go-frontend-svc
                 port:
                   number: 2345

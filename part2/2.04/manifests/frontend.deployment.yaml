@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: development
   name: todo-go-frontend
 spec:
   replicas: 1
@@ -14,7 +15,7 @@ spec:
     spec:
       containers:
         - name: todo-go-frontend
-          image: djblackett/frontend:v0.13
+          image: djblackett/frontend:v0.12
           env:
             - name: PORT
               value: ":8080"
@@ -40,6 +41,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: development
   name: todo-go-frontend-svc
 spec:
   type: ClusterIP

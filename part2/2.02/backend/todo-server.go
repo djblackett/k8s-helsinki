@@ -13,8 +13,10 @@ var uniqueId = 3
 func main() {
 
 	r := gin.Default()
+	//host := os.Getenv("REACT_APP_URL")
+
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:8080"}, // Adjust to your React app's address
+		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:8080", "http://localhost:8081"}, // Adjust to your React app's address
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,

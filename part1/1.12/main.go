@@ -116,7 +116,7 @@ func checkTimestamp() bool {
 	if err2 != nil {
 		fmt.Println("error parsing timestamp")
 	}
-	return time.Since(t) > time.Hour
+	return time.Since(t) > 5*time.Second
 }
 
 func startTimestampWatcher() {
@@ -126,6 +126,6 @@ func startTimestampWatcher() {
 			writeTimestamp()
 			getImage()
 		}
-		time.Sleep(1 * time.Hour)
+		time.Sleep(5 * time.Second)
 	}
 }

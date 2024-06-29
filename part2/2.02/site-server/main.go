@@ -2,12 +2,14 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -19,14 +21,63 @@ func main() {
 		getImage()
 	}
 
+	backend := os.Getenv("BACKEND")
+	apiUrl := os.Getenv("API_URL")
+
+	fmt.Println(backend)
+	fmt.Println(apiUrl)
+
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(dir)
+
 	go startTimestampWatcher()
 
 	r := gin.Default()
 
-	r.Static("/todo-react", "./build") // Serve static files from React's build directory
-	r.NoRoute(func(c *gin.Context) {
-		c.File("./build/index.html") // Serve the React app for any undefined routes
+	r.Static("/static", "./build/static")           // Serve static files from React's build directory
+	r.StaticFile("/config.js", "./build/config.js") // Serve config.js separately
+	r.StaticFile("/", "./build/index.html")
+	//r.StaticFile("/img.jpg", "./tmp/kube/img.jpg")
+
+	r.GET("/todos", func(c *gin.Context) {
+		resp, err := http.Get(backend + "/todos")
+
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data from remote server"})
+			return
+		}
+		defer resp.Body.Close()
+
+		// Check if the request was successful
+		if resp.StatusCode != http.StatusOK {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Remote server returned non-200 status"})
+			return
+		}
+
+		// Decode the JSON response into the struct
+		var data Todo
+		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode JSON response"})
+			return
+		}
+
+		// Relay the response back to the browser
+		c.JSON(http.StatusOK, data)
+
 	})
+	// Serve the image file directly when accessing /img.jpg
+	r.StaticFile("/img.jpg", "./tmp/kube/img.jpg")
+
+	r.GET("/img", func(c *gin.Context) {
+		c.File("./tmp/kube/img.jpg")
+	})
+
+	//r.NoRoute(func(c *gin.Context) {
+	//	c.File("./build/index.html") // Serve the React app for any undefined routes
+	//})
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -127,4 +178,10 @@ func startTimestampWatcher() {
 		}
 		time.Sleep(1 * time.Hour)
 	}
+}
+
+type Todo struct {
+	Id        int    `json:"id"`
+	Text      string `json:"text"`
+	Completed bool   `json:"completed"`
 }

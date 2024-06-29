@@ -1,6 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
+  namespace: development
   name: example-pv
 spec:
   storageClassName: my-example-pv # this is the name you are using later to claim this volume

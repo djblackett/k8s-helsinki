@@ -1,7 +1,8 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: todo-go-ingress
+  namespace: development
+  name: ping-pong-ingress
 spec:
   rules:
     - http:
@@ -10,13 +11,13 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: todo-go-frontend-svc
+                name: log-output-svc
                 port:
                   number: 2345
-          - path: /todos
+          - path: /pingpong
             pathType: Prefix
             backend:
               service:
-                name: todo-go-backend-svc
+                name: ping-pong-svc
                 port:
                   number: 2345

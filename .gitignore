@@ -102,5 +102,10 @@ go.work
 
 
 node-app-todo
-
+**/secret.yaml
+secret.yaml
+*/secret.yaml
+**/key.txt
+key.txt
+*/key.txt
 

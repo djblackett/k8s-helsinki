@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: development
   name: todo-go-frontend
 spec:
   replicas: 1
@@ -14,10 +15,12 @@ spec:
     spec:
       containers:
         - name: todo-go-frontend
-          image: djblackett/frontend:v0.13
+          image: djblackett/frontend:v0.12
           env:
             - name: PORT
               value: ":8080"
+            - name: API_URL
+              value: "todo-go-backend.default.svc.luster.local"
             - name: BACKEND
               value: todo-go-backend-svc:2345
 
@@ -38,6 +41,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  namespace: development
   name: todo-go-frontend-svc
 spec:
   type: ClusterIP

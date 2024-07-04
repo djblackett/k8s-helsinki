@@ -14,14 +14,12 @@ spec:
     spec:
       containers:
         - name: todo-go-backend
-          image: djblackett/backend:v0.2
-          ports:
-            - containerPort: 8080
+          image: djblackett/backend:v0.3
+#          ports:
+#            - containerPort: 8080
           env:
             - name: PORT
               value: ":8000"
-            - name: REACT_APP_URL
-              value: http://localhost:8081
 
 ---
 

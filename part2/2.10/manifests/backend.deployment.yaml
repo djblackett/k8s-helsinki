@@ -13,9 +13,13 @@ spec:
       labels:
         app: todo-go-backend
     spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.28
+          command: [ 'sh', '-c', 'until nc -z postgres-svc 5432; do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is up"' ]
       containers:
         - name: todo-go-backend
-          image: djblackett/backend:v2.08.7
+          image: djblackett/backend:v2.10
           ports:
             - containerPort: 8080
           env:

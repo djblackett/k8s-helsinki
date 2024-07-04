@@ -7,10 +7,22 @@ import (
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
+
+func LoggerMiddleware() gin.HandlerFunc {
+	logger := log.New(os.Stdout, "", log.LstdFlags)
+	return func(c *gin.Context) {
+		start := time.Now()
+		c.Next()
+		duration := time.Since(start)
+		logger.Printf("Request - Method: %s | Status: %d | Duration: %v", c.Request.Method, c.Writer.Status(), duration)
+	}
+}
 
 func main() {
 
@@ -43,6 +55,7 @@ func main() {
 	fmt.Println("Successfully connected!")
 
 	r := gin.Default()
+	r.Use(LoggerMiddleware())
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://localhost:8080", "http://localhost:8081"},

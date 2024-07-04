@@ -22,10 +22,8 @@ func main() {
 	}
 
 	backend := os.Getenv("BACKEND")
-	apiUrl := os.Getenv("API_URL")
 
 	fmt.Println(backend)
-	fmt.Println(apiUrl)
 
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
@@ -40,7 +38,6 @@ func main() {
 	r.Static("/static", "./build/static")           // Serve static files from React's build directory
 	r.StaticFile("/config.js", "./build/config.js") // Serve config.js separately
 	r.StaticFile("/", "./build/index.html")
-	//r.StaticFile("/img.jpg", "./tmp/kube/img.jpg")
 
 	r.GET("/todos", func(c *gin.Context) {
 		resp, err := http.Get(backend + "/todos")

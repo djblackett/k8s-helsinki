@@ -78,8 +78,30 @@ func main() {
 	r.POST("/todos", func(c *gin.Context) {
 		var newTodo Todo
 
-		// Call BindJSON to bind the received JSON
+		//// Call BindJSON to bind the received JSON
+		//if err := c.BindJSON(&newTodo); err != nil {
+		//	return
+		//}
+
 		if err := c.BindJSON(&newTodo); err != nil {
+			// Log the error and return a 400 response
+			c.Error(err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+			return
+		}
+
+		// Check if the text length exceeds 140 characters
+		if len(newTodo.Text) > 140 {
+			err := fmt.Errorf("todo text exceeds 140 characters")
+			c.Error(err) // Add error to Gin context
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		// Create the new todo in the database
+		if err := db.Create(&newTodo).Error; err != nil {
+			c.Error(err) // Log any database error
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not create todo"})
 			return
 		}
 

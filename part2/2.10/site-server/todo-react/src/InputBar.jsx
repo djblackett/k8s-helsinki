@@ -2,7 +2,6 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectColorMode } from "./features/colorMode/colorModeSlice";
 import {addListItem, addTodo} from "./features/listItems/listItemsSlice";
-import log from "eslint-plugin-react/lib/util/log";
 
 function InputBar() {
   const dispatch = useDispatch();
@@ -13,10 +12,6 @@ function InputBar() {
     console.log(input)
     let text = input.value
     if (text === "") return;
-    if (text.length > 140) {
-      console.log("Error: Text must be 140 characters or less")
-      return;
-    }
     const newEntry = {
       text: text,
       completed: false,

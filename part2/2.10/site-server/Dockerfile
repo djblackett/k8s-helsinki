@@ -1,3 +1,15 @@
+FROM node:lts as react-builder
+
+WORKDIR /app
+
+COPY todo-react/package*.json ./
+
+RUN npm install
+
+COPY ./todo-react ./
+RUN npm run build
+
+
 FROM golang:latest as builder
 LABEL authors="dave"
 
@@ -8,14 +20,13 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY *.go ./
-COPY /build /build
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /todo-go
 
 FROM alpine:latest
 
 COPY --from=builder /todo-go .
-COPY --from=builder /build /build
+COPY --from=react-builder /app/build /build
 RUN mkdir tmp/kube
 
 # Copy the entrypoint script

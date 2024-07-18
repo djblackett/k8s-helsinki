@@ -19,7 +19,7 @@ spec:
           command: [ 'sh', '-c', 'until nc -z postgres-svc 5432; do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is up"' ]
       containers:
         - name: todo-go-backend
-          image: djblackett/backend:v2.10
+          image: djblackett/backend:v2.10.1
           ports:
             - containerPort: 8080
           env:

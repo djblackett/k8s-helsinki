@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: todo-go-frontend
-          image: djblackett/frontend:v0.12
+          image: djblackett/frontend:v2.10.2
           env:
             - name: PORT
               value: ":8080"

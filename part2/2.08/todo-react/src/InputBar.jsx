@@ -13,10 +13,7 @@ function InputBar() {
     console.log(input)
     let text = input.value
     if (text === "") return;
-    if (text.length > 140) {
-      console.log("Error: Text must be 140 characters or less")
-      return;
-    }
+
     const newEntry = {
       text: text,
       completed: false,

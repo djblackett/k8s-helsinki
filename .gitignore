@@ -100,7 +100,6 @@ fabric.properties
 # Go workspace file
 go.work
 
-
 node-app-todo
 **/secret.yaml
 secret.yaml
@@ -109,3 +108,6 @@ secret.yaml
 key.txt
 */key.txt
 
+.idea/jsonSchemas.xml
+.idea/sqldialects.xml
+.idea/watcherTasks.xml

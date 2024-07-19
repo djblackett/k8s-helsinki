@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: development
+  name: log-output
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-output
+  template:
+    metadata:
+      labels:
+        app: log-output
+    spec:
+      containers:
+        - name: log-output
+          image: djblackett/log-output:v2.06.2
+          env:
+            - name: PING_PONG_SERVICE
+              value: "http://ping-pong-svc:2345"
+            - name: MESSAGE
+              valueFrom:
+                configMapKeyRef:
+                  key: MESSAGE
+                  name: log-output-config
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: log-config
+              mountPath: "/etc/config"
+              readOnly: true
+      volumes:
+        - name: log-config
+          configMap:
+            name: log-output-config
+            items:
+              - key: informational.txt
+                path: informational.txt
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: development
+  name: log-output-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: log-output
+  ports:
+    - port: 2345
+      protocol: TCP
+      targetPort: 8080

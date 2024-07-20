@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: development
+  name: web-config
+data:
+  web.properties: |
+    window.API_URL = "__API_URL__";

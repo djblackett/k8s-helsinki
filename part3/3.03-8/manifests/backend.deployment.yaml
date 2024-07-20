@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: development
+  name: todo-go-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: todo-go-backend
+  template:
+    metadata:
+      labels:
+        app: todo-go-backend
+    spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: busybox:1.28
+          command: [ 'sh', '-c', 'until nc -z postgres-svc 5432; do echo "Waiting for PostgreSQL..."; sleep 2; done; echo "PostgreSQL is up"' ]
+      containers:
+        - name: todo-go-backend
+          image: djblackett/backend:v2.10
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: ":8000"
+            - name: HOST
+              value: postgres-svc
+            - name: REACT_APP_URL
+              value: http://localhost:8081
+            - name: USER
+              value: postgres
+            - name: DB_NAME
+              value: todos
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-password
+                  key: PASSWORD
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: development
+  name: todo-go-backend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: todo-go-backend # This is the app as declared in the deployment.
+  ports:
+    - port: 2345
+      protocol: TCP
+      targetPort: 8000

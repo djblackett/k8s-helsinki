@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: development
+  name: reminder
+spec:
+
+  schedule: 38 * * * *
+  jobTemplate:
+    metadata:
+      labels:
+        job-name: reminder
+    spec:
+      template:
+        spec:
+          containers:
+            - name: reminder
+              image: djblackett/add-reminder:v0.4
+              env:
+                - name: API_URL
+                  value: http://todo-go-backend-svc:2345/todos
+          restartPolicy: OnFailure

@@ -1,0 +1,42 @@
+serviceMonitor:
+  # When set true then use a ServiceMonitor to configure scraping
+  enabled: true
+  # Set the namespace the ServiceMonitor should be deployed
+  namespace: monitoring
+  # Set how frequently Prometheus should scrape
+  interval: 30s
+  # Set path to cloudwatch-exporter telemtery-path
+  telemetryPath: /metrics
+  # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
+  # labels:
+  # Set timeout for scrape
+  timeout: 10s
+
+datasource:
+  # Specify one of both datasource or datasourceSecret
+  host: "postgres-svc"
+  user: postgres
+  # Specify userFile if DB username is stored in a file.
+  # For example, to use with vault-injector from Hashicorp
+  userFile: ""
+  userSecret: {}
+  # Secret name
+  #  name:
+  # User key inside secret
+  #  key:
+  # Only one of password, passwordFile, passwordSecret and pgpassfile can be specified
+  password:
+  # Specify passwordFile if DB password is stored in a file.
+  # For example, to use with vault-injector from Hashicorp
+  passwordFile: ""
+  # Specify passwordSecret if DB password is stored in secret.
+  passwordSecret:
+    # Secret name
+    name: postgres-password
+    # Password key inside secret
+    key: PASSWORD
+  pgpassfile: ""
+  # If pgpassfile is set, it is used to initialize the PGPASSFILE environment variable.
+  # See https://www.postgresql.org/docs/14/libpq-pgpass.html for more info.
+  port: "5432"
+  database: "todos"

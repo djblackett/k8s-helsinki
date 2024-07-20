@@ -111,3 +111,5 @@ key.txt
 .idea/jsonSchemas.xml
 .idea/sqldialects.xml
 .idea/watcherTasks.xml
+/part4/4.02/manifests/prometheus-postgres-exporter/
+prometheus-postgres-exporter

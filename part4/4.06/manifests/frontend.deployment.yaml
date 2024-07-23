@@ -1,0 +1,85 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  namespace: development
+  name: todo-go-frontend
+spec:
+  replicas: 1
+  strategy:
+    canary:
+      steps:
+        - setWeight: 100
+  #       - setWeight: 25
+  #       - pause:
+  #           duration: 30s
+  #       - setWeight: 50
+  #       - pause:
+  #           duration: 30s
+  #       - analysis:
+  #           templates:
+  #             - templateName: cpu-usage
+  #               clusterScope: false
+  selector:
+    matchLabels:
+      app: todo-go-frontend
+  template:
+    metadata:
+      labels:
+        app: todo-go-frontend
+    spec:
+      containers:
+        - name: todo-go-frontend
+          image: djblackett/frontend:v4.02.8
+          resources:
+            requests:
+              cpu: "5m"
+              memory: "5Mi"
+            limits:
+              cpu: "20m"
+              memory: "20Mi"
+          env:
+            - name: PORT
+              value: ":8080"
+            - name: API_URL
+              value: "todo-go-backend.default.svc.luster.local"
+            - name: BACKEND
+              value: todo-go-backend-svc:2345
+
+          volumeMounts:
+            #override config.js file
+            - name: config
+              mountPath: "/build/config.js"
+              subPath: "config.js"
+          readinessProbe:
+            initialDelaySeconds: 10 # Initial delay until the readiness is tested
+            periodSeconds: 5 # How often to test
+            httpGet:
+              path: /healthz
+              port: 8080
+          livenessProbe:
+            initialDelaySeconds: 20 # Initial delay until the liveness is tested
+            periodSeconds: 5 # How often to test
+            httpGet:
+              path: /healthz
+              port: 8080
+      volumes:
+        - name: config
+          configMap:
+            name: web-config
+            items:
+              - key: "web.properties"
+                path: "config.js"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-go-frontend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: todo-go-frontend # This is the app as declared in the deployment.
+  ports:
+    - port: 2345
+      protocol: TCP
+      targetPort: 8080

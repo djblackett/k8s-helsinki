@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    metadata:
+      labels:
+        job-name: backup
+    spec:
+      template:
+        spec:
+          serviceAccountName: my-k8s-sa
+          nodeSelector:
+            iam.gke.io/gke-metadata-server-enabled: "true"
+          containers:
+            - name: backup
+              image: backup
+              env:
+                - name: PORT
+                  value: ":8000"
+                - name: HOST
+                  value: postgres-svc
+                - name: USER
+                  value: postgres
+                - name: DB_NAME
+                  value: todos
+                - name: POSTGRES_PORT
+                  value: "5432"
+                - name: PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: postgres-password
+                      key: PASSWORD
+          restartPolicy: OnFailure

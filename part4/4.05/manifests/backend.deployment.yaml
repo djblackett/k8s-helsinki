@@ -1,0 +1,85 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  namespace: development
+  name: todo-go-backend
+spec:
+  replicas: 4
+  strategy:
+    canary:
+      steps:
+        - setWeight: 25
+        - pause:
+            duration: 30s
+        - setWeight: 50
+        - pause:
+            duration: 30s
+        - analysis:
+            templates:
+              - templateName: cpu-usage
+                clusterScope: false
+  selector:
+    matchLabels:
+      app: todo-go-backend
+  template:
+    metadata:
+      labels:
+        app: todo-go-backend
+    spec:
+      containers:
+        - name: todo-go-backend
+          image: djblackett/backend:v4.0.1
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "50Mi"
+            limits:
+              cpu: "200m"
+              memory: "200Mi"
+          readinessProbe:
+            initialDelaySeconds: 10 # Initial delay until the readiness is tested
+            periodSeconds: 5 # How often to test
+            httpGet:
+              path: /healthz
+              port: 8000
+          livenessProbe:
+            initialDelaySeconds: 20 # Initial delay until the liveness is tested
+            periodSeconds: 5 # How often to test
+            httpGet:
+              path: /healthz
+              port: 8000
+
+          env:
+            - name: PORT
+              value: ":8000"
+            - name: HOST
+              value: postgres-svc
+            - name: REACT_APP_URL
+              value: http://localhost:8081
+            - name: USER
+              value: postgres
+            - name: DB_NAME
+              value: todos
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-password
+                  key: PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-go-backend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: todo-go-backend
+  ports:
+    - port: 2345
+      protocol: TCP
+      targetPort: 8000 #

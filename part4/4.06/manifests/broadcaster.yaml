@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: broadcaster
-          image: djblackett/broadcaster:v0.02
+          image: djblackett/broadcaster:v0.03
           ports:
             - containerPort: 8500
           env:

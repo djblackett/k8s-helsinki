@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Simple Async Subscriber
-	nc.Subscribe("broadcaster", func(m *nats.Msg) {
+	nc.QueueSubscribe("broadcaster", "broadcast-workers", func(m *nats.Msg) {
 		fmt.Printf("Received a message: %s\n", string(m.Data))
 		content = string(m.Data)
 

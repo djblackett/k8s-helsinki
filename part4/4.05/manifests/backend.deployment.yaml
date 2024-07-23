@@ -4,20 +4,21 @@ metadata:
   namespace: development
   name: todo-go-backend
 spec:
-  replicas: 4
+  replicas: 1
   strategy:
     canary:
       steps:
-        - setWeight: 25
-        - pause:
-            duration: 30s
-        - setWeight: 50
-        - pause:
-            duration: 30s
-        - analysis:
-            templates:
-              - templateName: cpu-usage
-                clusterScope: false
+        - setWeight: 100
+#        - setWeight: 25
+#        - pause:
+#            duration: 30s
+#        - setWeight: 50
+#        - pause:
+#            duration: 30s
+#        - analysis:
+#            templates:
+#              - templateName: cpu-usage
+#                clusterScope: false
   selector:
     matchLabels:
       app: todo-go-backend
@@ -28,7 +29,7 @@ spec:
     spec:
       containers:
         - name: todo-go-backend
-          image: djblackett/backend:v4.0.1
+          image: djblackett/backend:v4.0.8
           ports:
             - containerPort: 8080
           resources:

@@ -2,18 +2,18 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
+	"github.com/nats-io/nats.go"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
-
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	_ "github.com/lib/pq"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func LoggerMiddleware() gin.HandlerFunc {
@@ -44,6 +44,10 @@ func main() {
 	}
 	var dbname = os.Getenv("DB_NAME")
 	var user = os.Getenv("USER")
+
+	// Connect to a server
+	var natsUrl = os.Getenv("NATS_URL")
+	nc, _ := nats.Connect(natsUrl)
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
@@ -131,6 +135,10 @@ func main() {
 
 		db.Create(&newTodo)
 		fmt.Println(newTodo)
+
+		// Simple Publisher
+		nc.Publish("broadcaster", []byte("New todo created!"))
+
 		c.IndentedJSON(http.StatusCreated, newTodo)
 	})
 
@@ -162,7 +170,9 @@ func main() {
 			return
 		}
 
-		//todo.Completed = input.Completed
+		// Simple Publisher
+		nc.Publish("broadcaster", []byte("Todo successfully updated!"))
+
 		c.JSON(http.StatusOK, gin.H{"data": todo})
 	})
 

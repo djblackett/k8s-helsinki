@@ -4,20 +4,21 @@ metadata:
   namespace: development
   name: todo-go-frontend
 spec:
-  replicas: 4
+  replicas: 1
   strategy:
     canary:
       steps:
-        - setWeight: 25
-        - pause:
-            duration: 30s
-        - setWeight: 50
-        - pause:
-            duration: 30s
-        - analysis:
-            templates:
-              - templateName: cpu-usage
-                clusterScope: false
+        - setWeight: 100
+  #       - setWeight: 25
+  #       - pause:
+  #           duration: 30s
+  #       - setWeight: 50
+  #       - pause:
+  #           duration: 30s
+  #       - analysis:
+  #           templates:
+  #             - templateName: cpu-usage
+  #               clusterScope: false
   selector:
     matchLabels:
       app: todo-go-frontend
@@ -28,7 +29,7 @@ spec:
     spec:
       containers:
         - name: todo-go-frontend
-          image: djblackett/frontend:v4.02.4
+          image: djblackett/frontend:v4.02.8
           resources:
             requests:
               cpu: "5m"

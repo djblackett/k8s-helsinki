@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
         - name: todo-go-backend
-          image: djblackett/backend:v4.0.8
+          image: djblackett/backend:v4.0.10
           ports:
             - containerPort: 8080
           resources:
@@ -65,6 +65,8 @@ spec:
               value: todos
             - name: POSTGRES_PORT
               value: "5432"
+            - name: NATS_URL
+              value: my-nats.development.svc.cluster.local:4222
             - name: PASSWORD
               valueFrom:
                 secretKeyRef:

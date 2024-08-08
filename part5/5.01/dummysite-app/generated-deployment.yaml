@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dummysite-deployment
+  labels:
+    app: dummysite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dummysite
+  template:
+    metadata:
+      labels:
+        app: dummysite
+    spec:
+      initContainers:
+      - name: website-downloader
+        image: alpine:3.16
+        command: ["sh", "-c", "mkdir -p /mnt/website && wget -O /mnt/website/index.html www.example.com"]
+        volumeMounts:
+        - mountPath: /mnt/website
+          name: website-volume
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "50Mi"
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
+      containers:
+      - name: nginx-server
+        image: nginx:1.27.0-alpine
+        ports:
+        - containerPort: 80
+
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: website-volume
+
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "50Mi"
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
+
+      volumes:
+      - name: website-volume
+        emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: dummysite-deployment-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: dummysite
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80

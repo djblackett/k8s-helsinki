@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{{ deployment_name }}}
+  labels:
+    app: {{{ dummysite_name }}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{{ dummysite_name }}}
+  template:
+    metadata:
+      labels:
+        app: {{{ dummysite_name }}}
+    spec:
+      initContainers:
+      - name: website-downloader
+        image: alpine:3.16
+        command: ["sh", "-c", "mkdir -p /mnt/website && wget -O /mnt/website/index.html {{{ website_url }}}"]
+        volumeMounts:
+        - mountPath: /mnt/website
+          name: website-volume
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "50Mi"
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
+      containers:
+      - name: nginx-server
+        image: nginx:1.27.0-alpine
+        ports:
+        - containerPort: 80
+
+        volumeMounts:
+        - mountPath: /usr/share/nginx/html
+          name: website-volume
+
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "50Mi"
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
+
+      volumes:
+      - name: website-volume
+        emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{{ deployment_name }}}-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: {{{ deployment_name }}}
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{{ deployment_name }}}-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{{ deployment_name }}}-svc
+            port:
+              number: 80

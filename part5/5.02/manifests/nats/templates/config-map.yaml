@@ -1,0 +1,23 @@
+---
+# Source: nats/templates/config-map.yaml
+apiVersion: v1
+data:
+  nats.conf: |
+    {
+      "http_port": 8222,
+      "lame_duck_duration": "30s",
+      "lame_duck_grace_period": "10s",
+      "pid_file": "/var/run/nats/nats.pid",
+      "port": 4222,
+      "server_name": $SERVER_NAME
+    }
+kind: ConfigMap
+metadata:
+  labels:
+    app.kubernetes.io/component: nats
+    app.kubernetes.io/instance: my-nats
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nats
+    app.kubernetes.io/version: 2.10.17
+    helm.sh/chart: nats-1.2.1
+  name: my-nats-config

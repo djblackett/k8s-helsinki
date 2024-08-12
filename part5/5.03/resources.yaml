@@ -1,0 +1,89 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: argo-rollouts-http-route
+  namespace: test
+spec:
+  parentRefs:
+  - name: podinfo
+    namespace: test
+    kind: Service
+    group: core
+    port: 9898
+  rules:
+  - backendRefs:
+    - name: podinfo-stable
+      namespace: test
+      port: 9898
+    - name: podinfo-canary
+      namespace: test
+      port: 9898
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: podinfo-canary
+  namespace: test
+spec:
+  ports:
+  - port: 8989
+    targetPort: 8989
+    protocol: TCP
+    name: http
+  selector:
+    app: podinfo
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: podinfo-stable
+  namespace: test
+spec:
+  ports:
+  - port: 8989
+    targetPort: 8989
+    protocol: TCP
+    name: http
+  selector:
+    app: podinfo
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: rollouts-demo
+  namespace: test
+spec:
+  replicas: 1
+  strategy:
+    canary:
+      canaryService: podinfo-canary # our created canary service
+      stableService: podinfo-stable # our created stable service
+      trafficRouting:
+        plugins:
+          argoproj-labs/gatewayAPI:
+            httpRoute: argo-rollouts-http-route # our created httproute
+            namespace: test
+      steps:
+      - setWeight: 30
+      - pause: {}
+      - setWeight: 40
+      - pause: {duration: 10}
+      - setWeight: 60
+      - pause: {duration: 10}
+      - setWeight: 80
+      - pause: {duration: 10}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: podinfo
+  template:
+    metadata:
+      labels:
+        app: podinfo
+    spec:
+      containers:
+      - name: podinfod
+        image: quay.io/stefanprodan/podinfo:1.7.0
+        ports:
+        - containerPort: 9898
+          protocol: TCP

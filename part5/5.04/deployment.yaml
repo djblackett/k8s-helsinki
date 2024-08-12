@@ -1,28 +1,26 @@
-#  This file is only used for intellisense when making changes to deployment.mustache
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{{ deployment_name }}}
+  name: wiki-rando
   labels:
-    app: {{{ deployment_name }}}
+    app: wiki-rando
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{{ deployment_name }}}
-      website_url: {{{  website_url }}}
+      app: wiki-rando
   template:
     metadata:
       labels:
-        app: {{{ deployment_name }}}
+        app: wiki-rando
     spec:
       initContainers:
       - name: website-downloader
-        image: busybox:1.28
-        command: ["sh", "-c", "wget -P /mount/website {{{ website_url }}"]
+        image: alpine:3.16
+        command: ["sh", "-c", "mkdir -p /mnt/website && wget -O /mnt/website/index.html https://en.wikipedia.org/wiki/Kubernetes "]
         volumeMounts:
-      - mountPath: /mnt/website
-        name: website-volume
+        - mountPath: /mnt/website
+          name: website-volume
         resources:
           requests:
             cpu: "50m"
@@ -30,12 +28,9 @@ spec:
           limits:
             cpu: "200m"
             memory: "200Mi"
-
-
       containers:
       - name: nginx-server
         image: nginx:1.27.0-alpine
-        args: ["{{{ website_url }}}"]
         ports:
         - containerPort: 80
 
@@ -51,20 +46,48 @@ spec:
             cpu: "200m"
             memory: "200Mi"
 
+      - name: randomizer
+        image: alpine:3.16
+        command: ["sh", "/scripts/download-website.sh"]
+        volumeMounts:
+        - mountPath: /mnt/website
+          name: website-volume
+        - name: script-volume
+          mountPath: /scripts/download-website.sh
+          subPath: download-website.sh
+          readOnly: true
+
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "50Mi"
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
+
+
       volumes:
       - name: website-volume
         emptyDir: {}
+      - name: script-volume
+        configMap:
+          name: script-configmap
+          items:
+          - key: download-website.sh
+            path: download-website.sh
+
+
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{{ deployment_name }}}-svc
+  name: wiki-rando-svc
 spec:
   type: ClusterIP
   selector:
-    app: {{{ deployment_name }}}
+    app: wiki-rando
   ports:
   - port: 80
     protocol: TCP
@@ -75,7 +98,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: dummysite-ingress
+  name: wiki-rando-ingress
 spec:
   rules:
   - http:
@@ -84,6 +107,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: {{{ deployment_name }}}-svc
+            name: wiki-rando-svc
             port:
               number: 80

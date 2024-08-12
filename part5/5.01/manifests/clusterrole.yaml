@@ -11,13 +11,9 @@ rules:
 - apiGroups: ["apps"]
   resources: ["deployments"]
   verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]
-# - apiGroups: ["stable.dwk"]
-#   resources: ["countdowns"]
-#   verbs: ["get", "list", "watch", "create", "delete"]
 - apiGroups: ["stable.dwk"]
   resources: ["dummysites"]
   verbs: ["get", "list", "watch"]
-
 - apiGroups: ["networking.k8s.io"]
   resources: ["ingresses"]
   verbs: ["get", "list", "watch", "create", "delete", "update", "patch"]

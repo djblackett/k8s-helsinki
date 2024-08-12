@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-go-backend
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: todo-go-backend
+  template:
+    metadata:
+      labels:
+        app: todo-go-backend
+    spec:
+      containers:
+      - name: todo-go-backend
+        image: djblackett/todo-go-backend:3cc08bff91121c0c5ce663f0c849f16d9d1ed9c2
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "50Mi"
+          limits:
+            cpu: "200m"
+            memory: "200Mi"
+        readinessProbe:
+          initialDelaySeconds: 10 # Initial delay until the readiness is tested
+          periodSeconds: 5 # How often to test
+          httpGet:
+            path: /healthz
+            port: 8000
+        livenessProbe:
+          initialDelaySeconds: 20 # Initial delay until the liveness is tested
+          periodSeconds: 5 # How often to test
+          httpGet:
+            path: /healthz
+            port: 8000
+        env:
+        - name: PORT
+          value: "8000"
+        - name: HOST
+          value: postgres-svc
+        - name: REACT_APP_URL
+          value: http://localhost:8081
+        - name: USER
+          value: postgres
+        - name: DB_NAME
+          value: todos
+        - name: POSTGRES_PORT
+          value: "5432"
+        - name: NATS_URL
+          value: my-nats.default.svc.cluster.local:4222
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-password
+              key: PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-go-backend-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: todo-go-backend
+  ports:
+  - port: 2345
+    protocol: TCP
+    targetPort: 8000

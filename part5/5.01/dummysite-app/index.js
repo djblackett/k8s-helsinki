@@ -2,7 +2,6 @@ const k8s = require('@kubernetes/client-node')
 const mustache = require('mustache')
 const request = require('request')
 const JSONStream = require('json-stream')
-const { log } = require('console')
 const fs = require('fs').promises
 
 // Use Kubernetes client to interact with Kubernetes
@@ -17,11 +16,6 @@ const opts = {}
 kc.applyToRequest(opts)
 
 const client = kc.makeApiClient(k8s.CoreV1Api);
-
-// const sendRequestToApi = async (api, method = 'get', options = {}) =>
-//     new Promise((resolve, reject) => request[method](`${kc.getCurrentCluster()
-//         .server}${api}`, { ...opts, ...options, headers: { ...options.headers, ...opts.headers } },
-//         (err, res) => err ? reject(err) : resolve(JSON.parse(res.body))))
 
 const sendRequestToApi = async (api, method = 'get', options = {}) => {
     return new Promise((resolve, reject) => {
@@ -68,7 +62,6 @@ const fieldsFromDummysite = (object) => {
         container_name: object.metadata.name,
         deployment_name: `${object.metadata.name}-deployment`,
         namespace: object.metadata.namespace,
-        // image: object.spec.template.spec.containers[0].image || "nginx:1.27.0-alpine",
         website_url: object.spec.website_url,
     }
     console.log('Extracted fields:', fields)
@@ -89,7 +82,6 @@ const fieldsFromDeployment = (object) => {
         deployment_name: `${object.metadata.labels.name}-deployment`,
         namespace: object.metadata.namespace,
         website_url: object.spec.website_url,
-        // image: object.spec.template.spec.containers[0].image,
     }
     console.log('Extracted fields:', fields)
     return fields;
@@ -129,34 +121,6 @@ const createDeployment = async (fields) => {
     })
 }
 
-const createService = async (fields) => {
-    console.log(`Creating service for ${fields.dummysite_name}`)
-
-    const yaml = await getDeploymentYAML(fields)
-    const serviceYaml = yaml.split("---")[1]
-
-    return sendRequestToApi(`/api/v1/namespaces/${fields.namespace}/services`, 'post', {
-        headers: {
-            'Content-Type': 'application/yaml'
-        },
-        body: serviceYaml
-    })
-}
-
-const createIngress = async (fields) => {
-    console.log(`Creating ingress for ${fields.dummysite_name}`)
-
-    const yaml = await getDeploymentYAML(fields)
-    const ingressYaml = yaml.split("---")[2]
-
-    return sendRequestToApi(`/apis/networking.k8s.io/v1/namespaces/${fields.namespace}/ingresses`, 'post', {
-        headers: {
-            'Content-Type': 'application/yaml'
-        },
-        body: ingressYaml
-    })
-}
-
 
 const removeDeployment = async ({ namespace, deployment_name }) => {
     const pods = await sendRequestToApi(`/api/v1/namespaces/${namespace}/pods/`)
@@ -175,10 +139,6 @@ const removeDummysite = ({ namespace, dummysite_name }) => sendRequestToApi(`/ap
 
 const removePod = ({ namespace, pod_name }) => sendRequestToApi(`/api/v1/namespaces/${namespace}/pods/${pod_name}`, 'delete')
 
-const removeService = ({ namespace, service_name }) => sendRequestToApi(`/api/v1/namespaces/${namespace}/services/${service_name}`, 'delete')
-
-const removeIngress = ({ namespace, ingress_name }) => sendRequestToApi(`/apis/networking.k8s.io/v1/namespaces/${namespace}/ingresses/${ingress_name}`, 'delete')
-
 const cleanupForDummysite = async ({ namespace, dummysite_name }) => {
     console.log('Doing cleanup')
     clearTimeout(timeouts[dummysite_name])
@@ -195,13 +155,7 @@ const cleanupForDummysite = async ({ namespace, dummysite_name }) => {
         if (!dep.metadata.labels || !dep.metadata.labels.dummysite === dummysite_name) return
 
         removeDeployment({ namespace, deployment_name: dep.metadata.name })
-        // removeService({ namespace, service_name: dep.metadata.name + "-svc" })
-        // removeIngress({ namespace, ingress_name: dep.metadata.name + "-ingress" })
     })
-
-    // cleanup other resources
-
-
 }
 
 const rescheduleDeployment = (deploymentObject) => {
@@ -216,21 +170,6 @@ const rescheduleDeployment = (deploymentObject) => {
     }
 }
 
-
-// probably not necessary for deployment because they are auto restarted and idempotent
-//     // todo - fund out what this does and fix it
-//     // Save timeout so if the dummysite is suddenly removed we can prevent execution (removing dummysite removes job)
-//     timeouts[fields.dummysite_name] = setTimeout(() => {
-//         removeDeployment(fields)
-//         const newLength = Number(fields.length) - 1
-//         const newFields = {
-//             ...fields,
-//             deployment_name: `${fields.container_name}-deployment-${newLength}`,
-//             length: newLength
-//         }
-//         createDeployment(newFields)
-//     }, Number(fields.delay))
-// }
 
 const maintainStatus = async () => {
     (await client.listPodForAllNamespaces()).body // A bug in the client(?) was fixed by sending a request and not caring about response
@@ -256,8 +195,6 @@ const maintainStatus = async () => {
             if (type === 'ADDED') {
                 if (await jobForDummysiteAlreadyExists(fields)) return // Restarting application would create new 0th deployments without this check
                 await createDeployment(fields)
-                // await createService(fields)
-                // await createIngress(fields)
             }
             if (type === 'DELETED') cleanupForDummysite(fields)
         } catch (error) {

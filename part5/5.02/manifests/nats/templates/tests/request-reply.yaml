@@ -1,0 +1,50 @@
+---
+# Source: nats/templates/tests/request-reply.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    helm.sh/hook: test
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+  labels:
+    app.kubernetes.io/component: test-request-reply
+    app.kubernetes.io/instance: my-nats
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: nats
+    app.kubernetes.io/version: 2.10.17
+    helm.sh/chart: nats-1.2.1
+  name: my-nats-test-request-reply
+spec:
+  containers:
+  - args:
+    - sh
+    - -ec
+    - nats reply --echo echo & pid="$!"; sleep 1; nats request echo hi > /tmp/resp;
+      kill "$pid"; wait; grep -qF hi /tmp/resp
+    command:
+    - sh
+    - -ec
+    - |
+      work_dir="$(pwd)"
+      mkdir -p "$XDG_CONFIG_HOME/nats"
+      cd "$XDG_CONFIG_HOME/nats"
+      if ! [ -s context ]; then
+        ln -s /etc/nats-contexts context
+      fi
+      if ! [ -f context.txt ]; then
+        echo -n "default" > context.txt
+      fi
+      cd "$work_dir"
+      exec /entrypoint.sh "$@"
+    - --
+    image: natsio/nats-box:0.14.3
+    name: nats-box
+    volumeMounts:
+    - mountPath: /etc/nats-contexts
+      name: contexts
+  enableServiceLinks: false
+  restartPolicy: Never
+  volumes:
+  - name: contexts
+    secret:
+      secretName: my-nats-box-contexts

@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  namespace: development
   name: todo-go-frontend
 spec:
   replicas: 1
@@ -14,40 +13,46 @@ spec:
         app: todo-go-frontend
     spec:
       containers:
-        - name: todo-go-frontend
-          image: djblackett/frontend:v0.12
-          env:
-            - name: PORT
-              value: ":8080"
-            - name: API_URL
-              value: "todo-go-backend.default.svc.luster.local"
-            - name: BACKEND
-              value: todo-go-backend-svc:2345
+      - name: todo-go-frontend
+        image: djblackett/frontend:v0.15
+        resources:
+          requests:
+            cpu: "5m"
+            memory: "5Mi"
+          limits:
+            cpu: "20m"
+            memory: "20Mi"
+        env:
+        - name: PORT
+          value: ":8080"
+        - name: API_URL
+          value: "todo-go-backend.default.svc.luster.local"
+        - name: BACKEND
+          value: todo-go-backend-svc:2345
 
-          volumeMounts:
-            #override config.js file
-            - name: config
-              mountPath: "/build/config.js"
-              subPath: "config.js"
-      volumes:
+        volumeMounts:
+        #override config.js file
         - name: config
-          configMap:
-            name: web-config
-            items:
-              - key: "web.properties"
-                path: "config.js"
+          mountPath: "/build/config.js"
+          subPath: "config.js"
+      volumes:
+      - name: config
+        configMap:
+          name: web-config
+          items:
+          - key: "web.properties"
+            path: "config.js"
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: development
   name: todo-go-frontend-svc
 spec:
   type: ClusterIP
   selector:
     app: todo-go-frontend # This is the app as declared in the deployment.
   ports:
-    - port: 2345
-      protocol: TCP
-      targetPort: 8080
+  - port: 2345
+    protocol: TCP
+    targetPort: 8080

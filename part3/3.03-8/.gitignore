@@ -1,2 +1,4 @@
-key.txt
+.idea
 secret.yaml
+node_modules
+app-secrets.yaml

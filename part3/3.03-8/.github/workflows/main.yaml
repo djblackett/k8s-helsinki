@@ -5,8 +5,8 @@ on:
 
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
-  GKE_CLUSTER: dwk-cluster
-  GKE_ZONE: europe-north1-b
+  GKE_CLUSTER: "dwk-cluster"
+  GKE_ZONE: "northamerica-northeast1"
   IMAGE: dwk-environments
   SERVICE: dwk-environments
   BRANCH: ${{ github.ref_name }}
@@ -19,6 +19,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GKE_SA_KEY }}'
@@ -28,3 +29,57 @@ jobs:
 
       - name: 'Use gcloud CLI'
         run: gcloud info
+
+      - run: gcloud --quiet auth configure-docker
+
+      - name: 'Get GKE credentials'
+        uses: 'google-github-actions/get-gke-credentials@v2'
+        with:
+          cluster_name: '${{ env.GKE_CLUSTER }}'
+          project_id: '${{ env.PROJECT_ID }}'
+          location: '${{ env.GKE_ZONE }}'
+
+      ### Commented out code is for using docker hub instead of gcr
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v1
+
+      # - name: Log in to Docker Hub
+      #   run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build backup script
+        run: docker build --tag "gcr.io/$PROJECT_ID/backup:$BRANCH-$GITHUB_SHA" ./backup
+
+      - name: Build Frontend
+        # run: docker build --tag "${{ secrets.DOCKER_USERNAME }}/frontend:${GITHUB_SHA}" ./frontend
+        run: docker build --tag "gcr.io/$PROJECT_ID/frontend:$BRANCH-$GITHUB_SHA" ./frontend
+
+      - name: Build Backend
+        # run: docker build --tag "${{ secrets.DOCKER_USERNAME }}/backend:${GITHUB_SHA}" ./backend --no-cache
+        run: docker build --tag "gcr.io/$PROJECT_ID/backend:$BRANCH-$GITHUB_SHA" ./backend --no-cache
+
+
+      - name: Push Backup
+        run: docker push "gcr.io/$PROJECT_ID/backup:$BRANCH-$GITHUB_SHA"
+      - name: Push Frontend
+        # run: docker push "${{ secrets.DOCKER_USERNAME }}/frontend:${GITHUB_SHA}"
+        run: docker push "gcr.io/$PROJECT_ID/frontend:$BRANCH-$GITHUB_SHA"
+
+      - name: Push Backend
+        # run: docker push "${{ secrets.DOCKER_USERNAME }}/backend:${GITHUB_SHA}"
+        run: docker push "gcr.io/$PROJECT_ID/backend:$BRANCH-$GITHUB_SHA"
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Deploy
+        run: |-
+          if [ "${{ env.BRANCH }}" != "main" ]; then
+            kubectl create namespace ${GITHUB_REF#refs/heads/} || true
+            kubectl config set-context --current --namespace=${GITHUB_REF#refs/heads/}
+          fi
+          # kustomize edit set image frontend=${{ secrets.DOCKER_USERNAME }}/frontend:${GITHUB_SHA} backend=${{ secrets.DOCKER_USERNAME }}/backend:${GITHUB_SHA}
+          kustomize edit set image frontend="gcr.io/$PROJECT_ID/frontend:$BRANCH-$GITHUB_SHA" backend="gcr.io/$PROJECT_ID/backend:$BRANCH-$GITHUB_SHA" backup="gcr.io/$PROJECT_ID/backup:$BRANCH-$GITHUB_SHA"
+          kustomize build . | kubectl apply -f -
+          kubectl rollout status deployment todo-go-frontend --timeout 60s
+          kubectl rollout status deployment todo-go-backend --timeout 60s
+          kubectl get services -o wide

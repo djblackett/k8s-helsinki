@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  namespace: development
   name: postgres-ss
 spec:
   serviceName: postgres
@@ -17,7 +16,8 @@ spec:
       containers:
         - name: postgres
           image: postgres:13.0
-          command: ["/bin/bash", "/docker-entrypoint-initdb.d/custom-entrypoint.sh"]
+          command:
+            ["/bin/bash", "/docker-entrypoint-initdb.d/custom-entrypoint.sh"]
           ports:
             - name: postgres
               containerPort: 5432
@@ -32,13 +32,13 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
+              subPath: postgres
             - name: init-script
               mountPath: /docker-entrypoint-initdb.d
       volumes:
         - name: init-script
           configMap:
             name: postgres-init-config
-
   volumeClaimTemplates:
     - metadata:
         name: data
@@ -52,7 +52,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: development
   name: postgres-svc
   labels:
     app: postgres

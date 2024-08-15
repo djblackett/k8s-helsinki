@@ -1,0 +1,50 @@
+name: Delete environment
+
+on:
+  delete:
+
+env:
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: "dwk-cluster"
+  GKE_ZONE: "northamerica-northeast1"
+  IMAGE: dwk-environments
+  SERVICE: dwk-environments
+  BRANCH: ${{ github.ref_name }}
+
+
+jobs:
+    delete_env:
+      name: delete env
+      runs-on: ubuntu-latest
+
+      steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: 'Use gcloud CLI'
+        run: gcloud info
+
+      - name: 'Get GKE credentials'
+        uses: 'google-github-actions/get-gke-credentials@v2'
+        with:
+          cluster_name: '${{ env.GKE_CLUSTER }}'
+          project_id: '${{ env.PROJECT_ID }}'
+          location: '${{ env.GKE_ZONE }}'
+
+      - name: Set up Kustomize
+        uses: imranismail/setup-kustomize@v2
+
+      - name: Extract branch name
+        id: extract_ref
+        run: echo "BRANCH_NAME=$(echo ${{ github.event.ref }} | sed 's|refs/heads/||')" >> $GITHUB_ENV
+
+      - name: Delete namespace
+        run: |-
+            kubectl delete namespace "${{ env.BRANCH_NAME }}"

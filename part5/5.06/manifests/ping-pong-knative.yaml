@@ -1,0 +1,25 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: ping-pong-knative
+spec:
+  template:
+    spec:
+      containers:
+      - image: djblackett/pingpong:v4.06.2
+        env:
+        - name: REDIS_ADDRESS
+          value: redis-svc
+        resources:
+          requests:
+            cpu: "5m"
+            memory: "5Mi"
+          limits:
+            cpu: "20m"
+            memory: "20Mi"
+        readinessProbe:
+          initialDelaySeconds: 10 # Initial delay until the readiness is tested
+          periodSeconds: 5 # How often to test
+          httpGet:
+            path: /healthz
+            port: 8080
